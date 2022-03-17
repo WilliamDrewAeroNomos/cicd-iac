@@ -1,0 +1,177 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sonarqube
+  labels:
+    app.kubernetes.io/name: sonarqube
+    app.kubernetes.io/part-of: sonarqube
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-sonarqube-data-prod
+  namespace: sonarqube
+spec:
+  storageClassName: pv-sonarqube-data-prod
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  nfs:
+    server: betaPi
+    path: "/media/data/sonarqube/data"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-sonarqube-conf-prod
+  namespace: sonarqube
+spec:
+  storageClassName: pv-sonarqube-conf-prod
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  nfs:
+    server: betaPi
+    path: "/media/data/sonarqube/conf"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-sonarqube-logs-prod
+  namespace: sonarqube
+spec:
+  storageClassName: pv-sonarqube-logs-prod
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  nfs:
+    server: betaPi
+    path: "/media/data/sonarqube/logs"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-sonarqube-extensions-prod
+  namespace: sonarqube
+spec:
+  storageClassName: pv-sonarqube-extensions-prod
+  capacity:
+    storage: 1Gi
+  accessModes:
+  - ReadWriteOnce
+  nfs:
+    server: betaPi
+    path: "/media/DataNFS/sonarqube/extensions"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-sonarqube-data-prod
+  namespace: sonarqube
+spec:
+  storageClassName: pv-sonarqube-data-prod
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-sonarqube-conf-prod
+  namespace: sonarqube 
+spec:
+  storageClassName: pv-sonarqube-conf-prod
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-sonarqube-logs-prod
+  namespace: sonarqube 
+spec:
+  storageClassName: pv-sonarqube-logs-prod
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-sonarqube-extensions-prod
+  namespace: sonarqube 
+spec:
+  storageClassName: pv-sonarqube-extensions-prod
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarqube-prod
+  namespace: sonarqube 
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app:    sonarqube 
+      env:    prod
+  template:
+    metadata:
+      name:      pod-sonarqube-prod
+      namespace: sonarqube 
+      labels:
+        app:        sonarqube
+        env:        prod
+        ply-type:   cache 
+        k8s-app:    k8s-sonarqube-prod
+    spec:
+      containers:
+      - resources:
+        name: pod-sonarqube-prod
+        image: hub4rpi64/sonarqube:8.3.1.34397
+        env:
+        - name: SONAR_JDBC_USERNAME
+          value: username
+        - name: SONAR_JDBC_PASSWORD
+          value: password
+        - name: SONAR_JDBC_URL
+          value: jdbc:postgresql://srv-postgres-prod.databases/sonarqube
+        ports:
+        - name: sonarqube-port
+          containerPort: 9000
+        volumeMounts:
+        - mountPath: /opt/sonarqube/data 
+          name: sonarqube-data-vol 
+        - mountPath: /opt/sonarqube/conf 
+          name: sonarqube-conf-vol 
+        - mountPath: /opt/sonarqube/logs 
+          name: sonarqube-logs-vol 
+        - mountPath: /opt/sonarqube/extensions 
+          name: sonarqube-extensions-vol 
+      volumes:
+      - name: sonarqube-data-vol
+        persistentVolumeClaim:
+            claimName: pvc-sonarqube-data-prod  
+      - name: sonarqube-conf-vol
+        persistentVolumeClaim:
+            claimName: pvc-sonarqube-conf-prod
+      - name: sonarqube-logs-vol
+        persistentVolumeClaim:
+            claimName: pvc-sonarqube-logs-prod
+      - name: sonarqube-extensions-vol
+        persistentVolumeClaim:
+            claimName: pvc-sonarqube-extensions-prod

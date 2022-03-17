@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarqube
+  labels:
+    app: sonarqube
+spec:
+  selector:
+    matchLabels:
+      app: sonarqube
+  strategy:
+    type: Recreate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: sonarqube
+    spec:
+      containers:
+        - image: hub4rpi64/sonarqube:8.3.1.34397
+          args:
+            - -Dsonar.web.context=/sonar
+          name: sonarqube
+          env:
+            - name: SONARQUBE_JDBC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-pwd
+                  key: password
+            - name: SONARQUBE_JDBC_URL
+              value: jdbc:postgresql://sonar-postgres:5432/sonar?user=sonar
+          ports:
+            - containerPort: 9000
+              name: sonarqube

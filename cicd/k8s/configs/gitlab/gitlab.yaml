@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitlab
+  labels: 
+    app: gitlab
+spec:
+  selector:
+    matchLabels:
+      app: gitlab
+  strategy:
+    type: Recreate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: gitlab
+    spec:
+      containers:
+        - name: gitlab
+          image: gitlab/gitlab-ce:latest
+          ports:
+            - containerPort: 80
+              name: gitlab
+          volumeMounts:
+            - name: data-home
+              mountPath: /srv/gitlab/data
+      volumes:
+        - name: data-home
+          emptyDir: {}

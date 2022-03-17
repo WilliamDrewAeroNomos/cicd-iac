@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: artifactory
+  labels: 
+    app: artifactory
+spec:
+  selector:
+    matchLabels:
+      app: artifactory
+  strategy:
+    type: Recreate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: artifactory
+    spec:
+      containers:
+        - name: artifactory
+          image: matthewt53/artifactory-cpp-ce-rasp:latest
+          ports:
+            - name: http-port
+              containerPort: 8080
+          volumeMounts:
+            - name: artifactory-home
+              mountPath: /var/artifactory-home
+      volumes:
+        - name: artifactory-home
+          emptyDir: {}
